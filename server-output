@@ -19,6 +19,8 @@ end
 
 def sys(stuff)
   log "$ #{stuff}"
+  system(stuff)
+  log "Command exited with status #{$?.exitstatus}"
 end
 
 if File.read('server.properties') =~ /^level-name=(.*)$/
@@ -42,6 +44,9 @@ while line = gets
     log "Server output monitor: Auto-saving's #{$1}!"
   elsif line =~ %r<\[Server thread/INFO\]: (.*) (joined|left) the game>
     $players_online_since_last_backup = true
+  elsif line =~ %r<\[Server thread/INFO\]: \[Server\] Please update despite lack of players.>
+    log "Will pretend players have been online."
+    $players_online_since_last_backup = true
   elsif line =~ %r<\[Server thread/INFO\]: Saved the world>
     log "World saved."
     if $autosaving == false
@@ -50,7 +55,8 @@ while line = gets
       if $players_online_since_last_backup
         $players_online_since_last_backup = false
         log "There were players online since the last backup."
-        log "Time to make a backup!"
+        log "Time to make a backup!  Waiting a few seconds so files can stabilize..."
+        sleep 10
         sys "make -C '#{$world_dir}' update"
       else
         log "But no players were online since last backup; taking no action."

@@ -21,8 +21,15 @@ t = Thread.new {
 while line = gets
   line = line.strip
   unless line.empty?
-    STDOUT.puts line
-    STDOUT.flush
+    if line == 'force-save'
+      docmd "/say Please update despite lack of players."
+      docmd "/save-off"
+      docmd "/save-all"
+      STDERR.puts "Dear user: please /save-on when done."
+    else
+      STDOUT.puts line
+      STDOUT.flush
+    end
     if line == 'stop' or line == '/stop'
       break
     end
