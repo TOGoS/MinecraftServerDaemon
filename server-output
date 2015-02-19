@@ -21,7 +21,15 @@ def sys(stuff)
   log "$ #{stuff}"
 end
 
-$world_dir = "saves/TheDesert"
+if File.read('server.properties') =~ /^level-name=(.*)$/
+  $world_dir = $1
+else
+  STDERR.puts "Couldn't find level-name in server.properties."
+  exit 1
+end
+
+log "World dir: '#{$world_dir}'"
+
 $autosaving = true
 $world_saved_since_autosaving_disabled
 $players_online_since_last_backup = false
@@ -43,7 +51,7 @@ while line = gets
         $players_online_since_last_backup = false
         log "There were players online since the last backup."
         log "Time to make a backup!"
-        sys "make -C #{$world_dir} update"
+        sys "make -C '#{$world_dir}' update"
       else
         log "But no players were online since last backup; taking no action."
       end
