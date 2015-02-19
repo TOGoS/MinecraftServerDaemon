@@ -1,0 +1,58 @@
+#!/usr/bin/ruby
+
+#[19:36:34] [Server thread/INFO]: There are 0/20 players online:
+#[19:36:34] [Server thread/INFO]:
+#/save-off
+#[19:47:39] [Server thread/INFO]: Turned off world auto-saving
+#/save-all
+#[19:47:42] [Server thread/INFO]: Saving...
+#[19:47:42] [Server thread/INFO]: Saved the world
+#/save-on
+#[19:47:51] [Server thread/INFO]: Turned on world auto-saving
+#/list
+#[19:48:13] [Server thread/INFO]: There are 0/20 players online:
+#[19:48:13] [Server thread/INFO]: 
+
+def log(msg)
+  puts "Server output monitor: #{msg}"
+end
+
+def sys(stuff)
+  log "$ #{stuff}"
+end
+
+$world_dir = "saves/TheDesert"
+$autosaving = true
+$world_saved_since_autosaving_disabled
+$players_online_since_last_backup = false
+$onlin
+while line = gets
+  print line
+  if line =~ %r<\[Server thread/INFO\]: Turned (on|off) world auto-saving>
+    $autosaving = $1 == 'on'
+    $world_saved_since_autosaving_disabled = false
+    log "Server output monitor: Auto-saving's #{$1}!"
+  elsif line =~ %r<\[Server thread/INFO\]: (.*) (joined|left) the game>
+    $players_online_since_last_backup = true
+  elsif line =~ %r<\[Server thread/INFO\]: Saved the world>
+    log "World saved."
+    if $autosaving == false
+      log "Autosaving is off."
+      $world_saved_since_autosaving_disabled = true
+      if $players_online_since_last_backup
+        $players_online_since_last_backup = false
+        log "There were players online since the last backup."
+        log "Time to make a backup!"
+        sys "make -C #{$world_dir} update"
+      else
+        log "But no players were online since last backup; taking no action."
+      end
+    else
+      log "But autosaving is still on; taking no action."
+    end
+  elsif line =~ %r<\[Server thread/INFO\]: There are (\d+)/(\d+) players online>
+    if( $1.to_i > 0 )
+      $players_online_since_last_backup = true
+    end
+  end
+end

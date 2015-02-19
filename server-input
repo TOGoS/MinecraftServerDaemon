@@ -1,0 +1,31 @@
+#!/usr/bin/ruby
+
+def docmd( line )
+  STDERR.puts "Server input generator: Doing #{line}"
+  STDOUT.puts line
+  STDOUT.flush
+end
+
+t = Thread.new {
+  sleep 20 # Give the server time to start
+  loop {
+    sleep 600
+    docmd "/list"
+    docmd "/save-off"
+    docmd "/save-all"
+    sleep 60
+    docmd "/save-on"
+  }
+}
+
+while line = gets
+  line = line.strip
+  unless line.empty?
+    print line
+    STDOUT.flush
+    if line == 'stop' or line == '/stop'
+      break
+    end
+  end
+end
+t.kill
