@@ -21,7 +21,7 @@ t = Thread.new {
 while line = gets
   line = line.strip
   unless line.empty?
-    print line
+    STDOUT.puts line
     STDOUT.flush
     if line == 'stop' or line == '/stop'
       break
