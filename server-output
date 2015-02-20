@@ -13,14 +13,18 @@
 #[19:48:13] [Server thread/INFO]: There are 0/20 players online:
 #[19:48:13] [Server thread/INFO]: 
 
-def log(msg)
+$verbosity = 1
+
+def log(triviality, msg)
+  return if triviality > $verbosity
+  
   puts "Server output monitor: #{msg}"
 end
 
 def sys(stuff)
-  log "$ #{stuff}"
+  log 1, "$ #{stuff}"
   system(stuff)
-  log "Command exited with status #{$?.exitstatus}"
+  log 1, "Command exited with status #{$?.exitstatus}"
 end
 
 if File.read('server.properties') =~ /^level-name=(.*)$/
@@ -30,7 +34,7 @@ else
   exit 1
 end
 
-log "World dir: '#{$world_dir}'"
+log 1, "World dir: '#{$world_dir}'"
 
 $autosaving = true
 $world_saved_since_autosaving_disabled
@@ -41,28 +45,28 @@ while line = gets
   if line =~ %r<\[Server thread/INFO\]: Turned (on|off) world auto-saving>
     $autosaving = $1 == 'on'
     $world_saved_since_autosaving_disabled = false
-    log "Server output monitor: Auto-saving's #{$1}!"
+    log 2, "Server output monitor: Auto-saving's #{$1}!"
   elsif line =~ %r<\[Server thread/INFO\]: (.*) (joined|left) the game>
     $players_online_since_last_backup = true
   elsif line =~ %r<\[Server thread/INFO\]: \[Server\] Please update despite lack of players.>
-    log "Will pretend players have been online."
+    log 1, "Will pretend players have been online."
     $players_online_since_last_backup = true
   elsif line =~ %r<\[Server thread/INFO\]: Saved the world>
-    log "World saved."
+    log 2, "World saved."
     if $autosaving == false
-      log "Autosaving is off."
+      log 2, "Autosaving is off."
       $world_saved_since_autosaving_disabled = true
       if $players_online_since_last_backup
         $players_online_since_last_backup = false
-        log "There were players online since the last backup."
-        log "Time to make a backup!  Waiting a few seconds so files can stabilize..."
+        log 2, "There were players online since the last backup."
+        log 1, "Time to make a backup!  Waiting a few seconds so files can stabilize..."
         sleep 10
         sys "make -C '#{$world_dir}' update"
       else
-        log "But no players were online since last backup; taking no action."
+        log 2, "But no players were online since last backup; taking no action."
       end
     else
-      log "But autosaving is still on; taking no action."
+      log 2, "But autosaving is still on; taking no action."
     end
   elsif line =~ %r<\[Server thread/INFO\]: There are (\d+)/(\d+) players online>
     if( $1.to_i > 0 )
