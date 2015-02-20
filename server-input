@@ -6,10 +6,12 @@ def docmd( line )
   STDOUT.flush
 end
 
+$interval = 3600
+
 t = Thread.new {
   sleep 20 # Give the server time to start
   loop {
-    sleep 600
+    sleep $interval
     docmd "/list"
     docmd "/save-off"
     docmd "/save-all"
