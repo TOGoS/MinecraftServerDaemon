@@ -1,5 +1,11 @@
 #!/bin/sh
 
-set -euo pipefail
+set -uo pipefail
 
-./server-input | java -Xmx1024M -Xms1024M -jar ~/ext-apps/minecraft_server.1.8.1.jar nogui | ./server-output
+intercrash_sleep=10
+
+while true; do
+  ./server-input | java -Xmx1024M -Xms1024M -jar minecraft-server.jar nogui | ./server-output
+  echo "Server crashed!  Will restart in $intercrash_sleep seconds"
+  sleep $intercrash_sleep
+done

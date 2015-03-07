@@ -1,22 +1,47 @@
 #!/usr/bin/ruby
 
+Thread.abort_on_exception = true
+
 def docmd( line )
   STDERR.puts "Server input generator: Doing #{line}"
   STDOUT.puts line
   STDOUT.flush
 end
 
-$interval = 3600
+def force_save(resume=true)
+  docmd "/say Please update despite lack of players."
+  docmd "/save-off"
+  docmd "/save-all"
+  sleep 30
+  docmd "/save-on" if resume
+end
 
+$save_interval = 3600
+$restart_interval = 3600 * 12
+
+$start_time = Time.now
 t = Thread.new {
   sleep 20 # Give the server time to start
-  loop {
-    sleep $interval
+  while Time.now - $start_time < $restart_interval
+    sleep $save_interval
     docmd "/list"
     docmd "/save-off"
     docmd "/save-all"
     sleep 60
     docmd "/save-on"
+  end
+  docmd "/say Restarting server in one minute!"
+  sleep 30
+  force_save false
+  sleep 30
+  docmd "/stop"
+  exit
+}
+
+t2 = Thread.new {
+  loop {
+    docmd "/noop"
+    sleep 600
   }
 }
 
@@ -24,10 +49,7 @@ while line = gets
   line = line.strip
   unless line.empty?
     if line == 'force-save'
-      docmd "/say Please update despite lack of players."
-      docmd "/save-off"
-      docmd "/save-all"
-      STDERR.puts "Dear user: please /save-on when done."
+      Thread.new { force_save }
     else
       STDOUT.puts line
       STDOUT.flush
@@ -37,4 +59,6 @@ while line = gets
     end
   end
 end
+
 t.kill
+t2.kill
