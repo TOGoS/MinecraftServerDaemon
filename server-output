@@ -41,6 +41,9 @@ $world_saved_since_autosaving_disabled
 $players_online_since_last_backup = false
 $onlin
 while line = gets
+  # Ignore 'unknown command' lines
+  #next if line =~ %r<\[Server thread/INFO\]: Unknown command.>
+
   print line
   if line =~ %r<\[Server thread/INFO\]: Turned (on|off) world auto-saving>
     $autosaving = $1 == 'on'

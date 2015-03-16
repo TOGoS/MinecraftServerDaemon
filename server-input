@@ -40,8 +40,9 @@ t = Thread.new {
 
 t2 = Thread.new {
   loop {
-    docmd "/noop"
-    sleep 600
+    STDOUT.print " "
+    STDOUT.flush
+    sleep 6
   }
 }
 
